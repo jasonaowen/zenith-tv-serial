@@ -1,28 +1,41 @@
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
-int main(int argc, char* argv[]) {
+int open_serial() {
   int fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
   if (fd < 0) {
     perror("Error opening /dev/ttyS0");
-    return 1;
+    exit(EXIT_FAILURE);
   }
+  return fd;
+}
 
-  char* cmd = "ka 1 FF\r";
-  char buf[256]; memset(&buf, 0, 256);
-  ssize_t written, readc;
+void write_command(int fd) {
+  const char cmd[] = "ka 0 FF\r";
+  ssize_t written;
+
   written = write(fd, cmd, strlen(cmd));
-  printf("Wrote command: %s  %i of %i bytes written.\n", cmd, written, strlen(cmd));
+  printf("Wrote command: %s  %zi of %zi bytes written.\n", cmd, written, strlen(cmd));
+}
 
+void read_result(int fd) {
+  ssize_t readc, i;
+  char buf[256];
+  memset(&buf, 0, 256);
   readc = read(fd, &buf, 255);
-  printf("Read %i bytes of response: %s\n", readc, buf);
-  int i;
+  printf("Read %zi bytes of response: %s\n", readc, buf);
   for (i = 0; i < readc; i++) {
-    printf("Byte %i: %i (%c)\n", i, buf[i], buf[i]);
+    printf("Byte %zi: %i (%c)\n", i, (int)buf[i], buf[i]);
   }
+}
 
+int main() {
+  int fd;
+  fd = open_serial();
+  write_command(fd);
+  read_result(fd);
   return 0;
 }
