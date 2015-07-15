@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "inputs.h"
+
 int open_serial() {
   int fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
   if (fd < 0) {
@@ -52,9 +54,14 @@ void read_result(int fd) {
 }
 
 int main() {
-  int fd;
-  fd = open_serial();
-  write_command(fd);
-  read_result(fd);
+//  int fd;
+  int i;
+  printf("INPUT_COUNT: %i\n", INPUT_COUNT);
+  for (i = 0; i < INPUT_COUNT; i++) {
+    printf("Input %i named %s with data %.2i\n", i, INPUT_NAMES[i], INPUT_IDS[i]);
+  }
+//  fd = open_serial();
+//  write_command(fd);
+//  read_result(fd);
   return 0;
 }
