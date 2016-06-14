@@ -67,7 +67,7 @@ int timed_read(int fd, char *buf, ssize_t buf_size) {
     printf("No response received!\n");
   }
 
-  return 0;
+  return read_count;
 }
 
 int status_is_okay(struct Response response) {
@@ -112,3 +112,42 @@ COMMAND_STATUS tv_power_on(int fd) {
   return write_and_verify_command(fd, cmd, expected);
 }
 
+COMMAND_STATUS tv_power_off(int fd) {
+  const char cmd[] = "ka 0 00\r";
+  struct Response expected;
+
+  expected.partial_command = 'a';
+  expected.television_id = 0;
+  expected.data = 0;
+
+  return write_and_verify_command(fd, cmd, expected);
+}
+
+COMMAND_STATUS tv_power_status(int fd, POWER *power) {
+  const char cmd[] = "ka 0 FF\r";
+  char buf[32];
+  struct Response response;
+  int read_result;
+
+  write_command(fd, cmd);
+  read_result = timed_read(fd, buf, 32);
+  if (read_result) {
+    response = parse_response(buf);
+    if (status_is_okay(response)) {
+      if (response.data == 0) {
+        *power = POWER_OFF;
+        return SUCCESS;
+      } else if (response.data == 1) {
+        *power = POWER_ON;
+        return SUCCESS;
+      } else {
+        return FAILURE;
+      }
+    } else {
+      return FAILURE;
+    }
+  } else {
+    *power = POWER_OFF;
+    return TIMEOUT;
+  }
+}
