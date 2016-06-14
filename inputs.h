@@ -1,3 +1,6 @@
+#ifndef INPUTS_H
+#define INPUTS_H
+
 #define INPUT_TABLE \
 X(DTV, 0)           \
 X(ANALOG, 1)        \
@@ -16,14 +19,4 @@ typedef enum {
 } INPUT;
 #undef X
 
-#define X(name, id) #name,
-const char INPUT_NAMES[][INPUT_COUNT] = {
-  INPUT_TABLE
-};
-#undef X
-
-#define X(name, id) id,
-const int INPUT_IDS[] = {
-  INPUT_TABLE
-};
-#undef X
+#endif
