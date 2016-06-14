@@ -20,15 +20,19 @@ int main() {
   COMMAND_STATUS command_status;
   POWER power_status;
   fd = open_serial();
-  command_status = tv_power_status(fd, &power_status);
+  command_status = tv_input_set(fd, PC);
   printf("Command status (SUCCESS): %i\n", SUCCESS);
   printf("Command status (FAILURE): %i\n", FAILURE);
   printf("Command status (TIMEOUT): %i\n", TIMEOUT);
   printf("Command status (read   ): %i\n", command_status);
+  /*
   printf("Power status (POWER_ON ): %i\n", POWER_ON);
   printf("Power status (POWER_OFF): %i\n", POWER_OFF);
   printf("Power status (read     ): %i\n", power_status);
   tv_power_on(fd);
   tv_power_off(fd);
+  */
+
+
   return 0;
 }

@@ -19,4 +19,6 @@ typedef enum {
 } INPUT;
 #undef X
 
+extern const char INPUT_NAMES[][INPUT_COUNT];
+extern const int INPUT_IDS[];
 #endif

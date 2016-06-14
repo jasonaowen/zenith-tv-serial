@@ -36,7 +36,7 @@ struct Response parse_response(char buf[]) {
     printf("Command: %c\n", response.partial_command);
     printf("Television ID: %i\n", response.television_id);
     printf("Status: %.2s\n", response.status);
-    printf("Data: %i", response.data);
+    printf("Data: %i\n", response.data);
   } else {
     perror("error parsing result string");
   }
@@ -150,4 +150,19 @@ COMMAND_STATUS tv_power_status(int fd, POWER *power) {
     *power = POWER_OFF;
     return TIMEOUT;
   }
+}
+
+COMMAND_STATUS tv_input_set(int fd, INPUT input) {
+  const char cmd_format[] = "kb 0 %02X\r";
+  char cmd_buf[32];
+  struct Response expected;
+
+  cmd_buf[31] = 0;
+  snprintf(cmd_buf, 31, cmd_format, INPUT_IDS[input]);
+
+  expected.partial_command = 'b';
+  expected.television_id = 0;
+  expected.data = INPUT_IDS[input];
+
+  return write_and_verify_command(fd, cmd_buf, expected);
 }
