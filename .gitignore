@@ -35,3 +35,6 @@ tv-serial
 # Vim swap files
 *.swp
 *.swo
+
+# Protobuf files
+*.pb-c.*

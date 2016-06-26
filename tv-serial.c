@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "commands.h"
+#include "build/commands.pb-c.h"
 
 int open_serial() {
   int fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);

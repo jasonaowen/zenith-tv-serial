@@ -1,0 +1,44 @@
+enum PowerState {
+  POWER_OFF = 0;
+  POWER_ON = 1;
+}
+
+enum CommandStatus {
+  SUCCESS = 0;
+  FAILURE = 1;
+  TIMEOUT = 2;
+}
+
+message SetPower {
+  required PowerState power_state = 1;
+}
+
+message GetPower {}
+
+message PowerResult {
+  required CommandStatus command_status = 1;
+  required PowerState power_state = 2;
+}
+
+enum InputState {
+  DTV = 0;
+  ANALOG = 1;
+  AV1 = 2;
+  AV2 = 3;
+  COMP1 = 4;
+  COMP2 = 5;
+  PC = 7;
+  HDMI1 = 8;
+  HDMI2 = 9;
+}
+
+message SetInput {
+  required InputState input_state = 1;
+}
+
+message GetInput {}
+
+message InputResult {
+  required CommandStatus command_status = 1;
+  required InputState input_state = 2;
+}
