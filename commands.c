@@ -166,3 +166,34 @@ COMMAND_STATUS tv_input_set(int fd, INPUT input) {
 
   return write_and_verify_command(fd, cmd_buf, expected);
 }
+
+INPUT parse_input(int data) {
+  INPUT i;
+  for (i = 0; i < INPUT_COUNT; ++i) {
+    if (INPUT_IDS[i] == data) {
+      return i;
+    }
+  }
+  return INPUT_COUNT;
+}
+
+COMMAND_STATUS tv_input_status(int fd, INPUT *input) {
+  const char cmd[] = "kb 0 FF\r";
+  char buf[32];
+  struct Response response;
+  int read_result;
+
+  write_command(fd, cmd);
+  read_result = timed_read(fd, buf, 32);
+  if (read_result) {
+    response = parse_response(buf);
+    if (status_is_okay(response)) {
+      *input = parse_input(response.data);
+      return SUCCESS;
+    } else {
+      return FAILURE;
+    }
+  } else {
+    return TIMEOUT;
+  }
+}
