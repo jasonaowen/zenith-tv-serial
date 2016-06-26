@@ -15,11 +15,6 @@ message SetPower {
 
 message GetPower {}
 
-message PowerResult {
-  required CommandStatus command_status = 1;
-  required PowerState power_state = 2;
-}
-
 enum InputState {
   DTV = 0;
   ANALOG = 1;
@@ -38,7 +33,15 @@ message SetInput {
 
 message GetInput {}
 
-message InputResult {
+message Command {
+  optional GetPower get_power = 1;
+  optional SetPower set_power = 2;
+  optional GetInput get_input = 3;
+  optional SetInput set_input = 4;
+}
+
+message CommandResult {
   required CommandStatus command_status = 1;
-  required InputState input_state = 2;
+  optional PowerState power_state = 2;
+  optional InputState input_state = 3;
 }
