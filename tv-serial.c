@@ -1,8 +1,10 @@
 #include <fcntl.h>
-#include <string.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <zmq.h>
 
 #include "serial-commands.h"
@@ -21,6 +23,7 @@ int open_serial() {
 
 void *build_zmq_responder() {
   int rc;
+  mode_t previous_mode = umask(S_IXUSR | S_IXGRP | S_IXOTH);
   void *context = zmq_ctx_new();
   void *responder = zmq_socket(context, ZMQ_REP);
   rc = zmq_bind(responder, "ipc:///tmp/tv-serial.sock");
@@ -29,6 +32,7 @@ void *build_zmq_responder() {
     exit(EXIT_FAILURE);
   }
   printf("Listening on ipc:///tmp/tv-serial.sock...\n");
+  umask(previous_mode);
 
   return responder;
 }
