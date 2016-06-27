@@ -33,30 +33,6 @@ void *build_zmq_responder() {
   return responder;
 }
 
-size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buffer_length, int fd) {
-  POWER power;
-  INPUT input;
-  COMMAND_STATUS command_status;
-  CommandResult reply = COMMAND_RESULT__INIT;
-  size_t reply_length;
-  reply.command_status = COMMAND_STATUS__INVALID;
-
-  if (command->get_power) {
-    command_status = tv_power_status(fd, &power);
-    reply.command_status = command_status;
-    if (command_status == SUCCESS) {
-      reply.has_power_state = 1;
-      reply.power_state = power;
-    }
-  }
-
-  reply_length = command_result__get_packed_size(&reply);
-  assert(reply_buffer_length > reply_length);
-  command_result__pack(&reply, reply_buffer);
-
-  return reply_length;
-}
-
 void handle_request(int fd, void *responder) {
   int msg_len, reply_len;
   uint8_t command_buffer[MAX_MESSAGE_SIZE];
