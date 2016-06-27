@@ -11,7 +11,7 @@ def parse_args():
             'Send a command to the daemon controlling the television '
             'and print its reponse.')
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('command', choices=['power'], help='Command to send')
+    parser.add_argument('command', choices=['power', 'input'], help='Command to send')
     parser.add_argument('argument', choices=['on', 'off', 'status'])
     parser.add_argument('--verbose', '-v', action='count', help='Log more details. Only one level currently.')
     return parser.parse_args()
@@ -25,12 +25,9 @@ def connect_to_server():
 
 
 def build_command_message(command, argument):
-    print("Building message for command {} with arg {}".format(command, argument))
     message = commands_pb2.Command()
     if command == 'power':
-        print "found `power`"
         if argument == 'status':
-            print "found `power status`"
             message.get_power.SetInParent()
         elif argument == 'on':
             message.set_power.SetInParent()
@@ -38,6 +35,9 @@ def build_command_message(command, argument):
         elif argument == 'off':
             message.set_power.SetInParent()
             message.set_power.power_state = commands_pb2.POWER_OFF
+    elif command == 'input':
+        if argument == 'status':
+            message.get_input.SetInParent()
     return message
 
 

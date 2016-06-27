@@ -2,11 +2,7 @@
 #include "message-commands.h"
 #include "serial-commands.h"
 
-void handle_get_power_command(CommandResult *reply,
-                              uint8_t *reply_buffer,
-                              size_t reply_buffer_length,
-                              int fd
-                             ) {
+void handle_get_power_command(CommandResult *reply, int fd) {
   COMMAND_STATUS command_status;
   POWER power;
 
@@ -20,8 +16,6 @@ void handle_get_power_command(CommandResult *reply,
 
 void handle_set_power_command(PowerState power_state,
                               CommandResult *reply,
-                              uint8_t *reply_buffer,
-                              size_t reply_buffer_length,
                               int fd
                              ) {
   COMMAND_STATUS command_status;
@@ -35,6 +29,18 @@ void handle_set_power_command(PowerState power_state,
   reply->command_status = command_status;
 }
 
+void handle_get_input_command(CommandResult *reply, int fd) {
+  COMMAND_STATUS command_status;
+  INPUT input;
+
+  command_status = tv_input_status(fd, &input);
+  reply->command_status = command_status;
+  if (command_status == SUCCESS) {
+    reply->has_input_state = 1;
+    reply->input_state = INPUT_IDS[input];
+  }
+}
+
 size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buffer_length, int fd) {
   POWER power;
   INPUT input;
@@ -44,15 +50,15 @@ size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buf
   reply.command_status = COMMAND_STATUS__INVALID;
 
   if (command->get_power) {
-    handle_get_power_command(&reply, reply_buffer, reply_buffer_length, fd);
+    handle_get_power_command(&reply, fd);
   } else if (command->set_power) {
     handle_set_power_command(
       command->set_power->power_state,
       &reply,
-      reply_buffer,
-      reply_buffer_length,
       fd
     );
+  } else if (command->get_input) {
+    handle_get_input_command(&reply, fd);
   }
 
   reply_length = command_result__get_packed_size(&reply);

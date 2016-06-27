@@ -46,6 +46,7 @@ void handle_request(int fd, void *responder) {
   msg = command__unpack(NULL, msg_len, command_buffer);
 
   reply_len = execute_command(msg, reply_buffer, MAX_MESSAGE_SIZE, fd);
+  printf("Replying with message of length %i\n", reply_len);
   zmq_send(responder, reply_buffer, reply_len, 0);
 
   command__free_unpacked(msg, NULL);
