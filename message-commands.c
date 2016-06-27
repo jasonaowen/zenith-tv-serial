@@ -41,6 +41,17 @@ void handle_get_input_command(CommandResult *reply, int fd) {
   }
 }
 
+void handle_set_input_command(InputState input_state,
+                              CommandResult *reply,
+                              int fd
+                             ) {
+  COMMAND_STATUS command_status;
+  INPUT input = parse_input(input_state);
+
+  command_status = tv_input_set(fd, input);
+  reply->command_status = command_status;
+}
+
 size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buffer_length, int fd) {
   POWER power;
   INPUT input;
@@ -59,6 +70,12 @@ size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buf
     );
   } else if (command->get_input) {
     handle_get_input_command(&reply, fd);
+  } else if (command->set_input) {
+    handle_set_input_command(
+      command->set_input->input_state,
+      &reply,
+      fd
+    );
   }
 
   reply_length = command_result__get_packed_size(&reply);

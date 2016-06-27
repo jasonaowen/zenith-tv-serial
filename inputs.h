@@ -21,4 +21,6 @@ typedef enum {
 
 extern const char INPUT_NAMES[][INPUT_COUNT];
 extern const int INPUT_IDS[];
+
+INPUT parse_input(int id);
 #endif

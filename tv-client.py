@@ -12,7 +12,7 @@ def parse_args():
             'and print its reponse.')
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('command', choices=['power', 'input'], help='Command to send')
-    parser.add_argument('argument', choices=['on', 'off', 'status'])
+    parser.add_argument('argument', choices=['on', 'off', 'status', 'AV1', 'PC', 'HDMI1', 'HDMI2'])
     parser.add_argument('--verbose', '-v', action='count', help='Log more details. Only one level currently.')
     return parser.parse_args()
 
@@ -38,6 +38,9 @@ def build_command_message(command, argument):
     elif command == 'input':
         if argument == 'status':
             message.get_input.SetInParent()
+        elif argument in ['AV1', 'PC', 'HDMI1', 'HDMI2']:
+            message.set_input.SetInParent()
+            message.set_input.input_state = getattr(commands_pb2, argument)
     return message
 
 
