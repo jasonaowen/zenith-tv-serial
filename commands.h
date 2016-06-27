@@ -4,14 +4,14 @@
 #include "inputs.h"
 
 typedef enum {
-  SUCCESS,
-  FAILURE,
-  TIMEOUT
+  SUCCESS = 0,
+  FAILURE = 1,
+  TIMEOUT = 2
 } COMMAND_STATUS;
 
 typedef enum {
-  POWER_OFF,
-  POWER_ON
+  POWER_OFF = 0,
+  POWER_ON = 1
 } POWER;
 
 COMMAND_STATUS tv_power_on(int fd);

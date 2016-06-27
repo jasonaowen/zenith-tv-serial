@@ -1,7 +1,7 @@
 CC=gcc
 BUILDDIR=build
 
-LIBS = -lprotobuf-c
+LIBS = -lprotobuf-c -lzmq
 DEPS = commands.h inputs.h
 OBJS = \
   $(BUILDDIR)/commands.o \

@@ -3,9 +3,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <zmq.h>
 
 #include "commands.h"
 #include "build/commands.pb-c.h"
+
+const size_t MAX_MESSAGE_SIZE = 32;
 
 int open_serial() {
   int fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
@@ -16,30 +19,69 @@ int open_serial() {
   return fd;
 }
 
-int main() {
-  int fd;
+void *build_zmq_responder() {
+  int rc;
+  void *context = zmq_ctx_new();
+  void *responder = zmq_socket(context, ZMQ_REP);
+  rc = zmq_bind(responder, "ipc:///tmp/tv-serial.sock");
+  if (rc != 0) {
+    perror("Error binding to /tmp/tv-serial.sock");
+    exit(EXIT_FAILURE);
+  }
+  printf("Listening on ipc:///tmp/tv-serial.sock...\n");
+
+  return responder;
+}
+
+size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buffer_length, int fd) {
+  POWER power;
+  INPUT input;
   COMMAND_STATUS command_status;
-  POWER power_status;
-  INPUT input_status;
-  fd = open_serial();
-  command_status = tv_input_status(fd, &input_status);
-  printf("Command status (SUCCESS): %i\n", SUCCESS);
-  printf("Command status (FAILURE): %i\n", FAILURE);
-  printf("Command status (TIMEOUT): %i\n", TIMEOUT);
-  printf("Command status (read   ): %i\n", command_status);
+  CommandResult reply = COMMAND_RESULT__INIT;
+  size_t reply_length;
+  reply.command_status = COMMAND_STATUS__INVALID;
 
-  printf("Input status (PC   ): %i\n", PC);
-  printf("Input status (HDMI2): %i\n", HDMI2);
-  printf("Input status (read ): %i\n", input_status);
-  printf("Input status (name ): %s\n", INPUT_NAMES[input_status]);
-  /*
-  printf("Power status (POWER_ON ): %i\n", POWER_ON);
-  printf("Power status (POWER_OFF): %i\n", POWER_OFF);
-  printf("Power status (read     ): %i\n", power_status);
-  tv_power_on(fd);
-  tv_power_off(fd);
-  */
+  if (command->get_power) {
+    command_status = tv_power_status(fd, &power);
+    reply.command_status = command_status;
+    if (command_status == SUCCESS) {
+      reply.has_power_state = 1;
+      reply.power_state = power;
+    }
+  }
 
+  reply_length = command_result__get_packed_size(&reply);
+  assert(reply_buffer_length > reply_length);
+  command_result__pack(&reply, reply_buffer);
+
+  return reply_length;
+}
+
+void handle_request(int fd, void *responder) {
+  int msg_len, reply_len;
+  uint8_t command_buffer[MAX_MESSAGE_SIZE];
+  uint8_t reply_buffer[MAX_MESSAGE_SIZE];
+  Command *msg;
+
+  msg_len = zmq_recv(responder, command_buffer, MAX_MESSAGE_SIZE, 0);
+  assert(msg_len != -1);
+  assert(msg_len < MAX_MESSAGE_SIZE);
+  printf("Received message\n");
+  msg = command__unpack(NULL, msg_len, command_buffer);
+
+  reply_len = execute_command(msg, reply_buffer, MAX_MESSAGE_SIZE, fd);
+  zmq_send(responder, reply_buffer, reply_len, 0);
+
+  command__free_unpacked(msg, NULL);
+}
+
+int main() {
+  int serial_fd = open_serial();
+  void *zmq_responder = build_zmq_responder();
+
+  while (1) {
+    handle_request(serial_fd, zmq_responder);
+  }
 
   return 0;
 }
