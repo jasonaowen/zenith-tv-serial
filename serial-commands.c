@@ -6,7 +6,7 @@
 #include <sys/time.h>
 #include <syslog.h>
 
-#include "commands.h"
+#include "serial-commands.h"
 
 void write_command(int fd, const char* cmd) {
   ssize_t written;

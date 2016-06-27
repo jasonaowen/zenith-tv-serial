@@ -2,11 +2,11 @@ CC=gcc
 BUILDDIR=build
 
 LIBS = -lprotobuf-c -lzmq
-DEPS = commands.h inputs.h
+DEPS = inputs.h serial-commands.h
 OBJS = \
-  $(BUILDDIR)/commands.o \
   $(BUILDDIR)/commands.pb-c.o \
   $(BUILDDIR)/inputs.o \
+  $(BUILDDIR)/serial-commands.o \
   $(BUILDDIR)/tv-serial.o \
 
 $(BUILDDIR)/%.o: %.c $(DEPS)

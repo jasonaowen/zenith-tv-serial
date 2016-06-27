@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <zmq.h>
 
-#include "commands.h"
+#include "serial-commands.h"
 #include "build/commands.pb-c.h"
 
 const size_t MAX_MESSAGE_SIZE = 32;

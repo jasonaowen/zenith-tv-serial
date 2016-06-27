@@ -1,5 +1,5 @@
-#ifndef COMMANDS_H
-#define COMMANDS_H
+#ifndef SERIAL_COMMANDS_H
+#define SERIAL_COMMANDS_H
 
 #include "inputs.h"
 
