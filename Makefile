@@ -10,11 +10,25 @@ OBJS = \
   $(BUILDDIR)/serial-commands.o \
   $(BUILDDIR)/tv-serial.o \
 
-$(BUILDDIR)/%.o: %.c $(DEPS)
+all: tv-serial tv-client.py 
+
+clean:
+	rm -rf $(BUILDDIR)
+
+$(BUILDDIR):
+	mkdir $(BUILDDIR)
+
+$(BUILDDIR)/%.o: %.c $(DEPS) $(BUILDDIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 tv-serial: $(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
-$(BUILDDIR)/commands.pb-c.c $(BUILDDIR)/commands.pb-c.h: commands.proto
+$(BUILDDIR)/commands.pb-c.c $(BUILDDIR)/commands.pb-c.h: commands.proto $(BUILDDIR)
 	protoc-c --c_out=$(BUILDDIR) $<
+
+tv-client.py: $(BUILDDIR)/commands_pb2.py
+
+$(BUILDDIR)/commands_pb2.py: commands.proto $(BUILDDIR)
+	touch $(BUILDDIR)/__init__.py
+	protoc --python_out=$(BUILDDIR) $<

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import commands_pb2
+from build import commands_pb2
 import sys
 import zmq
 

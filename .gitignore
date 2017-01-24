@@ -38,3 +38,6 @@ tv-serial
 
 # Protobuf files
 *.pb-c.*
+
+# Build directory
+build/
