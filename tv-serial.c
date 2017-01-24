@@ -60,7 +60,7 @@ void handle_request(int fd, void *responder) {
 
 int main(int argc, char **argv) {
   char* device = "/dev/ttyS0";
-  if (argc > 1) { 
+  if (argc > 1) {
     device = argv[1];
   }
   int serial_fd = open_serial(device);
