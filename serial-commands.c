@@ -5,14 +5,21 @@
 #include <sys/select.h>
 #include <sys/time.h>
 #include <syslog.h>
+#include <unistd.h>
+#include <termios.h>
+#include <sys/ioctl.h>
 
 #include "serial-commands.h"
 
 void write_command(int fd, const char* cmd) {
   ssize_t written;
   written = write(fd, cmd, strlen(cmd));
+  char cmd_output[100];
+  strncpy(cmd_output, cmd, 100);
+  cmd_output[strlen(cmd_output)-1] = 0;
+
   // syslog(LOG_DEBUG, "Wrote command: '%s'; %zi of %zi bytes written.", cmd, written, strlen(cmd));
-  printf("Wrote command: '%s'; %zi of %zi bytes written.\n", cmd, written, strlen(cmd));
+  printf("Wrote command: '%s'; %zi of %zi bytes written.\n", cmd_output, written, strlen(cmd));
 }
 
 struct Response {
@@ -49,6 +56,9 @@ int timed_read(int fd, char *buf, ssize_t buf_size) {
   struct timeval timeout;
   int select_result;
   int read_count = 0;
+  int offset = 0;
+  int bytes_expected = 14;
+  int i;
 
   FD_ZERO(&input);
   FD_SET(fd, &input);
@@ -60,9 +70,18 @@ int timed_read(int fd, char *buf, ssize_t buf_size) {
   if (select_result > 0) {
     printf("Time remaining: %i microseconds\n", timeout.tv_usec);
     printf("Is the FD ready? %i\n", FD_ISSET(fd, &input));
+
     memset(buf, 0, buf_size);
-    read_count = read(fd, buf, buf_size-1);
-    printf("Read %zi bytes of response: %s\n", read_count, buf);
+    do 
+    {
+      read_count = read (fd, buf+offset, buf_size);
+      offset += read_count;
+    } while (offset < bytes_expected);
+    printf("Read %zi bytes of response:", offset);
+    for (i = 0; i < offset; i++) {
+      printf("%02x", (unsigned)buf[i]);
+    }
+    printf("\n");
   } else {
     printf("No response received!\n");
   }
