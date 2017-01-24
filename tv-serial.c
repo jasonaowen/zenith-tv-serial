@@ -12,10 +12,12 @@
 
 const size_t MAX_MESSAGE_SIZE = 32;
 
-int open_serial() {
-  int fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
+int open_serial(char* device) {
+  int fd = open(device, O_RDWR | O_NOCTTY);
   if (fd < 0) {
-    perror("Error opening /dev/ttyS0");
+    char error[100];
+    snprintf(error, 100, "Error opening %s", device);
+    perror(error);
     exit(EXIT_FAILURE);
   }
   return fd;
@@ -56,8 +58,12 @@ void handle_request(int fd, void *responder) {
   command__free_unpacked(msg, NULL);
 }
 
-int main() {
-  int serial_fd = open_serial();
+int main(int argc, char **argv) {
+  char* device = "/dev/ttyS0";
+  if (argc > 1) { 
+    device = argv[1];
+  }
+  int serial_fd = open_serial(device);
   void *zmq_responder = build_zmq_responder();
 
   while (1) {
