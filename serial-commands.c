@@ -5,14 +5,39 @@
 #include <sys/select.h>
 #include <sys/time.h>
 #include <syslog.h>
+#include <unistd.h>
+#include <termios.h>
+#include <sys/ioctl.h>
 
 #include "serial-commands.h"
 
+size_t trim_whitespace(char *out, size_t len, const char *in)
+{
+  size_t out_len, in_len = strlen(in);
+  const char *end = in + in_len;
+
+  memset(out, 0, len);
+
+  while (isspace((unsigned char)*in)) {
+    in++;
+  }
+
+  while (end > in && isspace((unsigned char)*(end - 1))) {
+    end--;
+  }
+
+  out_len = (end - in);
+  memcpy(out, in, out_len);
+
+  return out_len;
+}
+
 void write_command(int fd, const char* cmd) {
   ssize_t written;
+  char trimmed_cmd[100];
   written = write(fd, cmd, strlen(cmd));
-  // syslog(LOG_DEBUG, "Wrote command: '%s'; %zi of %zi bytes written.", cmd, written, strlen(cmd));
-  printf("Wrote command: '%s'; %zi of %zi bytes written.\n", cmd, written, strlen(cmd));
+  trim_whitespace(trimmed_cmd, 100, cmd);
+  printf("Wrote command: '%s'; %zi of %zi bytes written.\n", trimmed_cmd, written, strlen(cmd));
 }
 
 struct Response {
@@ -44,11 +69,26 @@ struct Response parse_response(char buf[]) {
   return response;
 }
 
+void print_detailed_response(char *response, int response_bytes) {
+  int i;
+  char trimmed_response[100];
+
+  trim_whitespace(trimmed_response, 100, response);
+  printf("Read %zi bytes of response\n", response_bytes);
+  printf("Response: '%s'\n", trimmed_response);
+  printf("Raw response: '");
+  for (i = 0; i < response_bytes; i++) {
+    printf("%02x", (unsigned)response[i]);
+  }
+  printf("'\n");
+}
+
 int timed_read(int fd, char *buf, ssize_t buf_size) {
   fd_set input;
   struct timeval timeout;
   int select_result;
   int read_count = 0;
+  int bytes_expected = 14;
 
   FD_ZERO(&input);
   FD_SET(fd, &input);
@@ -60,9 +100,12 @@ int timed_read(int fd, char *buf, ssize_t buf_size) {
   if (select_result > 0) {
     printf("Time remaining: %i microseconds\n", timeout.tv_usec);
     printf("Is the FD ready? %i\n", FD_ISSET(fd, &input));
+
     memset(buf, 0, buf_size);
-    read_count = read(fd, buf, buf_size-1);
-    printf("Read %zi bytes of response: %s\n", read_count, buf);
+    do {
+      read_count += read(fd, buf+read_count, buf_size);
+    } while (read_count < bytes_expected);
+    print_detailed_response(buf, read_count);
   } else {
     printf("No response received!\n");
   }
