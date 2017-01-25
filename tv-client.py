@@ -11,7 +11,7 @@ def parse_args():
             'Send a command to the daemon controlling the television '
             'and print its reponse.')
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('command', choices=['power', 'input'], help='Command to send')
+    parser.add_argument('command', choices=['power', 'input', 'screenmute'], help='Command to send')
     parser.add_argument('argument', choices=['on', 'off', 'status', 'AV1', 'PC', 'HDMI1', 'HDMI2'])
     parser.add_argument('--verbose', '-v', action='count', help='Log more details. Only one level currently.')
     return parser.parse_args()
@@ -41,6 +41,15 @@ def build_command_message(command, argument):
         elif argument in ['AV1', 'PC', 'HDMI1', 'HDMI2']:
             message.set_input.SetInParent()
             message.set_input.input_state = getattr(commands_pb2, argument)
+    elif command == 'screenmute':
+        if argument == 'status':
+            message.get_screenmute.SetInParent()
+        elif argument == 'on':
+            message.set_screenmute.SetInParent()
+            message.set_screenmute.screenmute_state = commands_pb2.SCREENMUTE_ON
+        elif argument == 'off':
+            message.set_screenmute.SetInParent()
+            message.set_screenmute.screenmute_state = commands_pb2.SCREENMUTE_OFF
     return message
 
 

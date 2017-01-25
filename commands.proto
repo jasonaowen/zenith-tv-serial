@@ -34,15 +34,30 @@ message SetInput {
 
 message GetInput {}
 
+enum ScreenMuteState {
+  SCREENMUTE_OFF = 0;
+  SCREENMUTE_ON = 1;
+}
+
+message SetScreenMute {
+  required ScreenMuteState screenmute_state = 1;
+}
+
+message GetScreenMute {}
+
 message Command {
   optional GetPower get_power = 1;
   optional SetPower set_power = 2;
   optional GetInput get_input = 3;
   optional SetInput set_input = 4;
+  optional GetScreenMute get_screenmute = 5;
+  optional SetScreenMute set_screenmute = 6;
+
 }
 
 message CommandResult {
   required CommandStatus command_status = 1;
   optional PowerState power_state = 2;
   optional InputState input_state = 3;
+  optional ScreenMuteState screenmute_state = 4;
 }
