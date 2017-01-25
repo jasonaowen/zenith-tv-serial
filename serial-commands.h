@@ -14,11 +14,20 @@ typedef enum {
   POWER_ON = 1
 } POWER;
 
+typedef enum {
+  SCREENMUTE_OFF = 0,
+  SCREENMUTE_ON = 1,
+} SCREENMUTE;
+
 COMMAND_STATUS tv_power_on(int fd);
 COMMAND_STATUS tv_power_off(int fd);
 COMMAND_STATUS tv_power_status(int fd, POWER *power);
 
 COMMAND_STATUS tv_input_set(int fd, INPUT input);
 COMMAND_STATUS tv_input_status(int fd, INPUT *input);
+
+COMMAND_STATUS tv_screenmute_on(int fd);
+COMMAND_STATUS tv_screenmute_off(int fd);
+COMMAND_STATUS tv_screenmute_status(int fd, SCREENMUTE *screenmute);
 
 #endif

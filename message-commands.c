@@ -52,6 +52,33 @@ void handle_set_input_command(InputState input_state,
   reply->command_status = command_status;
 }
 
+void handle_get_screenmute_command(CommandResult *reply, int fd) {
+  COMMAND_STATUS command_status;
+  SCREENMUTE screenmute;
+
+  command_status = tv_screenmute_status(fd, &screenmute);
+  reply->command_status = command_status;
+  if (command_status == SUCCESS) {
+    reply->has_screenmute_state = 1;
+    reply->screenmute_state = screenmute;
+  }
+}
+
+void handle_set_screenmute_command(ScreenMuteState screenmute_state,
+                              CommandResult *reply,
+                              int fd
+                             ) {
+  COMMAND_STATUS command_status;
+  SCREENMUTE screenmute;
+
+  if (screenmute_state == SCREEN_MUTE_STATE__SCREENMUTE_ON) {
+    command_status = tv_screenmute_on(fd);
+  } else {
+    command_status = tv_screenmute_off(fd);
+  }
+  reply->command_status = command_status;
+}
+
 size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buffer_length, int fd) {
   POWER power;
   INPUT input;
@@ -73,6 +100,14 @@ size_t execute_command(Command *command, uint8_t *reply_buffer, size_t reply_buf
   } else if (command->set_input) {
     handle_set_input_command(
       command->set_input->input_state,
+      &reply,
+      fd
+    );
+  } else if (command->get_screenmute) {
+    handle_get_screenmute_command(&reply, fd);
+  } else if (command->set_screenmute) {
+    handle_set_screenmute_command(
+      command->set_screenmute->screenmute_state,
       &reply,
       fd
     );

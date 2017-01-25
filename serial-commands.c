@@ -240,3 +240,54 @@ COMMAND_STATUS tv_input_status(int fd, INPUT *input) {
     return TIMEOUT;
   }
 }
+
+COMMAND_STATUS tv_screenmute_on(int fd) {
+  const char cmd[] = "kd 0 01\r";
+  struct Response expected;
+
+  expected.partial_command = 'd';
+  expected.television_id = 0;
+  expected.data = 1;
+
+  return write_and_verify_command(fd, cmd, expected);
+}
+
+COMMAND_STATUS tv_screenmute_off(int fd) {
+  const char cmd[] = "kd 0 00\r";
+  struct Response expected;
+
+  expected.partial_command = 'd';
+  expected.television_id = 0;
+  expected.data = 0;
+
+  return write_and_verify_command(fd, cmd, expected);
+}
+
+COMMAND_STATUS tv_screenmute_status(int fd, SCREENMUTE *screenmute) {
+  const char cmd[] = "kd 0 FF\r";
+  char buf[32];
+  struct Response response;
+  int read_result;
+
+  write_command(fd, cmd);
+  read_result = timed_read(fd, buf, 32);
+  if (read_result) {
+    response = parse_response(buf);
+    if (status_is_okay(response)) {
+      if (response.data == 0) {
+        *screenmute = SCREENMUTE_OFF;
+        return SUCCESS;
+      } else if (response.data == 1) {
+        *screenmute = SCREENMUTE_ON;
+        return SUCCESS;
+      } else {
+        return FAILURE;
+      }
+    } else {
+      return FAILURE;
+    }
+  } else {
+    *screenmute = SCREENMUTE_OFF;
+    return TIMEOUT;
+  }
+}
